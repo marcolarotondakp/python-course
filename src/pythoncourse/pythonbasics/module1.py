@@ -16,7 +16,8 @@ def sum():
 
 def division():
     """
-    Scrivi una funzione che accetta 2 numeri come input, e ritorna la loro somma.
+    Scrivi una funzione che accetta 2 numeri come input, e ritorna il risultato
+    della divisione.
     Il valore ritornato deve essere un numero intero.
     """
     pass
@@ -35,5 +36,6 @@ def is_even():
     """
     Scrivi una funzione che accetta un numero intero e ritorna True se è pari,
     altrimenti False.
+    Hint: per testare l'uguaglianza tra 2 oggetti si usa l'operatore ==.
     """
     pass
