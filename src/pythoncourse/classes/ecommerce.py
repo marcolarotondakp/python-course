@@ -53,3 +53,103 @@ Prerequisiti extra.
     O anche:
         Python essentials 1 (pdf su slack) - cap 4.6
 """
+
+from abc import ABC, abstractmethod
+from typing_extensions import override
+
+
+class Prodotto(ABC):
+    next_id: int = 0
+
+    def __init__(self, nome: str, prezzo: int) -> None:
+        self.nome = nome
+        self.prezzo = prezzo
+        self.id = Prodotto.next_id
+        Prodotto.next_id += 1
+
+    @abstractmethod
+    def calcola_spedizione(self) -> int:
+        pass
+
+    @override
+    def __repr__(self) -> str:
+        return f"Nome: {self.nome}, Prezzo: {self.prezzo}"
+
+
+class Libro(Prodotto):
+    def __init__(self, nome: str, prezzo: int, autore: str) -> None:
+        super().__init__(nome, prezzo)
+        self.autore = autore
+
+    @override
+    def calcola_spedizione(self) -> int:
+        return self.prezzo // 5
+
+
+class CD(Prodotto):
+    def __init__(self, nome: str, prezzo: int, numero_tracce: int) -> None:
+        super().__init__(nome, prezzo)
+        self.numero_tracce = numero_tracce
+
+    @override
+    def calcola_spedizione(self) -> int:
+        return 2
+
+
+class Magazzino:
+    def __init__(self, inventario: dict[Prodotto, int] | None = None) -> None:
+        if inventario is None:
+            self.inventario = {}
+        else:
+            self.inventario = inventario
+
+    def add(self, prodotto: Prodotto):
+        if prodotto not in self.inventario:
+            self.inventario[prodotto] = 1
+        else:
+            self.inventario[prodotto] += 1
+        print(f"Copie di {prodotto}: {self.inventario[prodotto]}")
+
+    def remove(self, prodotto: Prodotto):
+        quantity = self.inventario.get(prodotto)
+        if quantity is None or quantity == 0:
+            print(
+                f"non è possibile rimuovere l'oggetto {prodotto}. Copie nell'inventario: {quantity}"
+            )
+        else:
+            self.inventario[prodotto] -= 1
+
+
+class Carrello:
+    def __init__(self, magazzino: Magazzino) -> None:
+        self.da_acquistare: dict[Prodotto, int] = {}
+        self.costi_prodotti = 0
+        self.costi_spedizione = 0
+        self.magazzino = magazzino
+
+    def svuota(self) -> None:
+        self.da_acquistare.clear()
+        self.costi_prodotti = 0
+        self.costi_spedizione = 0
+
+    def add(self, prodotto: Prodotto) -> None:
+        quantita_magazzino = self.magazzino.inventario.get(prodotto)
+        if quantita_magazzino is None or quantita_magazzino == 0:
+            print("Impossibile aggiungere prodotto al carrello")
+            return
+        if prodotto not in self.da_acquistare:
+            self.da_acquistare[prodotto] = 1
+        else:
+            self.da_acquistare[prodotto] += 1
+        self.costi_prodotti += prodotto.prezzo
+        self.costi_spedizione += prodotto.calcola_spedizione()
+        self.magazzino.remove(prodotto)
+
+    def remove(self, prodotto: Prodotto) -> None:
+        if prodotto in self.da_acquistare:
+            self.da_acquistare[prodotto] -= 1
+            self.costi_prodotti -= prodotto.prezzo
+            self.costi_spedizione -= prodotto.calcola_spedizione()
+            self.magazzino.add(prodotto)
+            if self.da_acquistare[prodotto] == 0:
+                del self.da_acquistare[prodotto]
